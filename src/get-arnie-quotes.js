@@ -1,6 +1,8 @@
 const { httpGet } = require('./mock-http-interface');
 
 const getArnieQuotes = async (urls) => {
+  var successKey = 'Arnie Quote';
+  var failureKey = 'FAILURE';
   const responses = await Promise.all(
     urls.map(async (url) => {
       try {
@@ -13,18 +15,18 @@ const getArnieQuotes = async (urls) => {
           msg = parsed.message;
         } 
         catch {
-          return { 'FAILURE': 'Invalid response' };
+          return { [failureKey]: 'Invalid response' };
         }
 
         if (res.status === 200) {
-          return { 'Arnie Quote': msg };
+          return { [successKey]: msg };
         } 
         else {
-          return { 'FAILURE': msg };
+          return { [failureKey]: msg };
         }
       } 
       catch (err) {
-        return { 'FAILURE': err.message};
+        return { [failureKey] : err.message};
       }
     })
   );
