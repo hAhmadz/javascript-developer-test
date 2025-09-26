@@ -1,22 +1,45 @@
 const { httpGet } = require('./mock-http-interface');
 
 const getArnieQuotes = async (urls) => {
-  var responses = await Promise.all(
+  const responses = await Promise.all(
     urls.map(async (url) => {
-      var successKey = 'Arnie Quote';
-      var failureKey = 'FAILURE';
-      const res = await httpGet(url);
-      const { message } = JSON.parse(res.body);
+      try {
+        
+        const res = await withTimeout(httpGet(url));
 
-      if (res.status === 200) {
-        return { [successKey]: message };
-      } else {
-        return { [failureKey]: message };
+        let msg;
+        try {
+          const parsed = JSON.parse(res.body);
+          msg = parsed.message;
+        } 
+        catch {
+          return { 'FAILURE': 'Invalid response' };
+        }
+
+        if (res.status === 200) {
+          return { 'Arnie Quote': msg };
+        } 
+        else {
+          return { 'FAILURE': msg };
+        }
+      } 
+      catch (err) {
+        return { 'FAILURE': err.message};
       }
     })
   );
 
   return responses;
+};
+
+// Method to add explicit timeout constraint < 500ms
+const withTimeout = (promise) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('code to be executed in less than 400ms')), 500)
+    )
+  ]);
 };
 
 module.exports = {
